@@ -23,7 +23,7 @@ typedef struct _obfs
 } OBITFS;
 
 void obitfs_init(OBITFS *bfs, FILE *fp);
-int obitfs_put(OBITFS *bfs, unsigned int data, unsigned int len);
+void obitfs_put(OBITFS *bfs, unsigned int data, unsigned int len);
 void obitfs_finalize(OBITFS *bfs);
 void ibitfs_init(IBITFS *bfs, FILE *fp);
 unsigned int ibitfs_get(IBITFS *bfs, unsigned int len);

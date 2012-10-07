@@ -13,7 +13,7 @@ void obitfs_init(OBITFS *bfs, FILE *fp)
   bfs->bpos = 0;
 }
 
-int obitfs_put(OBITFS *bfs, unsigned int data, unsigned int len)
+void obitfs_put(OBITFS *bfs, unsigned int data, unsigned int len)
 {
   unsigned int d;
   unsigned int t;

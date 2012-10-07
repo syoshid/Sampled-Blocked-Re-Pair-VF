@@ -6,7 +6,7 @@ CFG	= txt2cfg cfg2txt cfg2enc txt2enc enc2txt
 
 OBJS	= $(SRCS:%.c=%.o)
 CC	= gcc
-CFLAGS	= -O2 -DNDEBUG
+CFLAGS	= -O2 -DNDEBUG -Wall
 LIB	= -lm
 
 all: $(REPAIR) TAGS

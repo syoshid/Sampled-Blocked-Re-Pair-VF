@@ -18,6 +18,7 @@
  */
 
 #ifdef REPAIR
+#include <stdlib.h>
 #include <getopt.h>
 #include "repair.h"
 #include "encoder.h"
@@ -45,51 +46,143 @@ EDICT *convertDict(DICT *dict, USEDCHARTABLE *ut)
     edict->tcode[i] = code++;
   }
   
-  free(dict);
   return edict;
 }
 
+void help(char **argv)
+{
+   printf("Usage: %s -r <input filename> -w <output filename> -d <dicitonary filename> -b <block size> -l <codeword length> -c <common_dictinoary size>\n"
+	   "Compresses <input filename> with repair and creates "
+	   "<output filename> compressed files\n\n", argv[0]);
+   exit(EXIT_FAILURE);
+}
 int main(int argc, char *argv[])
 {
-  char *target_filename;
+  char *target_filename = NULL;
   //char output_filename[1024];
-  char *output_filename;
-  FILE *input, *output;
+  char *output_filename = NULL;
+  char *dict_filename = NULL;
+  int codewordlength = 0;
+  int shared_dictsize = 0;
+  int block_length = 0;
+  int length;
+  char *rest;
+  FILE *input, *output, *dictfile;
   DICT *dict;
   EDICT *edict;
   USEDCHARTABLE ut;
+  int result;
+  unsigned int b;
+  unsigned char *buf;
+  OBITFS seqout, dicout;
+  int header_output = 0;
 
-  if (argc != 3) {
-    printf("Usage: %s <input filename> <output filename>\n"
-	   "Compresses <input filename> with repair and creates "
-	   "<output filename> compressed files\n\n", argv[0]);
-    exit(1);
+   /* オプションの解析 */
+  while ((result = getopt(argc, argv, "r:w:b:l:d:s:")) != -1) {
+    switch (result) {
+    case 'r':
+      target_filename = optarg;
+      break;
+      
+    case 'w':
+      output_filename = optarg;
+      break;
+      
+    case 'd':
+      dict_filename = optarg;
+      break;
+      
+    case 'b':
+      block_length = strtol(optarg, &rest, 10);
+      if (*rest != '\0') {
+	help(argv);
+      }
+      break;
+      
+    case 'l':
+      codewordlength = strtol(optarg, &rest, 10);
+      if (*rest != '\0') {
+	help(argv);
+      }
+      break;
+      
+    case 's':
+      shared_dictsize = strtol(optarg, &rest, 10);
+      if (*rest != '\0') {
+	help(argv);
+      }
+      break;
+      
+    case '?':
+      help(argv);
+      break;
+    }
   }
-  target_filename = argv[1];
+
+  // 必要なオプションがそろっているかを確認する
+  if (!(target_filename && output_filename && dict_filename && block_length && codewordlength && shared_dictsize)) {
+    help(argv);
+  }
   
+  // 入力ファイルをオープンする
   input  = fopen(target_filename, "r");
   if (input == NULL) {
-    puts("File open error at the beginning.");
+    puts("Input file open error at the beginning.");
     exit(1);
   }
-
-  //strcpy(output_filename, target_filename);
-  //strcat(output_filename, ".rp");
-  output_filename = argv[2];
+  
+  // 圧縮データファイルをオープンする
   output = fopen(output_filename, "wb");
   if (output == NULL) {
-    puts("File open error at the beginning.");
+    puts("Output file open error at the beginning.");
     exit(1);
+  }
+  
+  // 辞書ファイルをオープンする
+  dictfile = fopen(dict_filename, "wb");
+  if (!dictfile) {
+    puts("Dictionary file open error at the beginning.");
+    exit(EXIT_FAILURE);
+  }
+
+  if (NULL == (buf = malloc(sizeof(unsigned char) * block_length))) {
+    puts("malloc fault.");
+    exit(EXIT_FAILURE);
   }
 
   chartable_init(&ut);
-  dict = RunRepair(input, &ut);
-  edict = convertDict(dict, &ut);
-  EncodeCFG(edict, output, &ut);
-  DestructEDict(edict);
+  fill_chartable(input, &ut);
+  fseek(input, 0, SEEK_END);
+  dict = createDict(ftell(input));
+  fseek(input, 0, SEEK_SET);
+  b = 0;
+  obitfs_init(&seqout, output);
+  obitfs_init(&dicout, dictfile);
+  printf("Generating CFG..."); fflush(stdout);
+  outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
+  while (!feof(input)) {
+    length = fread(buf, sizeof(unsigned char), block_length, input);
+    if (b) {
+      // run replacerautomaton
+    }
+    dict = RunRepair(dict, buf, block_length, shared_dictsize, codewordlength, &ut);
+    edict = convertDict(dict, &ut);
+    if (dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize && !header_output) {
+      header_output = 1;
+      outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
+    }
+    if (header_output) {
+      outputLocalDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
+    }
+    EncodeCFG(edict, &seqout, codewordlength);
+    DestructEDict(edict);
+    b++;
+  }
+  free(dict);
 
   fclose(input);
   fclose(output);
+  fclose(dictfile);
   exit(0);
 }
 #endif

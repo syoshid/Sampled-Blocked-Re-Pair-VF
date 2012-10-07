@@ -42,9 +42,13 @@ typedef struct EncodeDictionary
 } EDICT;
 
 EDICT *ReadCFG(FILE *input);
-void EncodeCFG(EDICT *dict, FILE *output, USEDCHARTABLE *ut);
+void EncodeCFG(EDICT *dict, OBITFS *obfs, unsigned int codewordlength);
 void encodeCFG_rec(uint code, EDICT *dict, BITOUT *bitout, OBITFS *obf, USEDCHARTABLE *ut);
 void putLeaf(uint numcode, CODE lcode, BITOUT *bitout);
 void putParen(uchar b, BITOUT *bitout);
 void DestructEDict(EDICT *dict);
+void fill_chartable(FILE *input, USEDCHARTABLE *ut);
+void outputHeader(OBITFS *obfs, DICT *dict, unsigned int codewordlength, unsigned int blocklength, USEDCHARTABLE *ut);
+void outputSharedDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigned int codewordlength, unsigned int shared_dictsize, unsigned int blocknum);
+void outputLocalDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigned int codewordlength, unsigned int shared_dictsize, unsigned int blocknum);
 #endif

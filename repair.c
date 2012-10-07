@@ -36,7 +36,7 @@ PAIR *createPair(RDS *rds, CODE left, CODE right, uint f_pos);
 void destructPair(RDS *rds, PAIR *target);
 void resetPQ(RDS *rds, uint p_num);
 void initRDS(RDS *rds);
-RDS *createRDS(FILE *input, USEDCHARTABLE *ut);
+RDS *createRDS(unsigned char*, int);
 void destructRDS(RDS *rds);
 PAIR *getMaxPair(RDS *rds);
 uint leftPos_SQ(RDS *rds, uint pos);
@@ -44,7 +44,6 @@ uint rightPos_SQ(RDS *rds, uint pos);
 void removeLink_SQ(RDS *rds, uint target_pos);
 void updateBlock_SQ(RDS *rds, CODE new_code, uint target_pos);
 uint replacePairs(RDS *rds, PAIR *max_pair, CODE new_code);
-DICT *createDict(uint txt_len);
 CODE addNewPair(DICT *dict, PAIR *max_pair);
 void getCompSeq(RDS *rds, DICT *dict);
 
@@ -258,7 +257,7 @@ void initRDS(RDS *rds)
   resetPQ(rds, 1);
 }
 
-RDS *createRDS(FILE *input, USEDCHARTABLE *ut)
+RDS *createRDS(unsigned char *buf, int length)
 {
   uint size_w;
   uint i;
@@ -271,20 +270,12 @@ RDS *createRDS(FILE *input, USEDCHARTABLE *ut)
   PAIR *pair;
   RDS *rds;
 
-  fseek(input,0,SEEK_END);
-  size_w = ftell(input);
-  rewind(input);
   seq = (SEQ*)malloc(sizeof(SEQ)*size_w);
 
-  printf("text size = %d(bytes)\n", size_w);
-
-  i = 0;
-  while ((c = getc(input)) != EOF) {
-    chartable_set(ut, (unsigned char)c);
+  for (i = 0; i < length; i++) {
     seq[i].code = c;
     seq[i].next = DUMMY_POS;
     seq[i].prev = DUMMY_POS;
-    i++;
   }
 
   h_num = INIT_HASH_NUM;
@@ -300,7 +291,7 @@ RDS *createRDS(FILE *input, USEDCHARTABLE *ut)
   }
   
   rds = (RDS*)malloc(sizeof(RDS));
-  rds->txt_len = size_w;
+  rds->txt_len = length;
   rds->seq = seq;
   rds->num_pairs = 0;
   rds->h_num = h_num;
@@ -618,42 +609,29 @@ void getCompSeq(RDS *rds, DICT *dict)
   dict->seq_len = seq_len;
 }
 
-DICT *RunRepair(FILE *input, USEDCHARTABLE *ut)
+DICT *RunRepair(DICT *dict, unsigned char *buf, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut)
 {
   RDS  *rds;
-  DICT *dict;
+  //  DICT *dict;
   PAIR *max_pair;
   CODE new_code;
   uint num_replaced, cseqlen, numsymbol;
   uint width;
-  double best = DBL_MAX;
-
-  rds  = createRDS(input, ut);
-  dict = createDict(rds->txt_len);
+ 
+  rds  = createRDS(buf, length);
+  //  dict = createDict(rds->txt_len);
   cseqlen = rds->txt_len;
 
-  printf("Generating CFG..."); fflush(stdout);
+  
   num_replaced = 0;
-  while ((max_pair = getMaxPair(rds)) != NULL) {
-    numsymbol = ut->size + dict->num_rules - CHAR_SIZE;
-    // size = (2 * dict->num_rules + cseqlen) * log(numsymbol);
-    width = numsymbol;
-    if(width >= 2) width = ceil(log((double)numsymbol)/log(2.0));
-    if(((2 * (dict->num_rules - CHAR_SIZE) + cseqlen) * width < best)){
-      // ここで最小であることがわかった。
-	best = (2 * (dict->num_rules - CHAR_SIZE) + cseqlen) * width;
-	dict->num_usedrules = dict->num_rules;
-    }
-    new_code = addNewPair(dict, max_pair);
-    //if (new_code > USHRT_MAX) break;
-    //num_replaced += replacePairs(rds, max_pair, new_code);
-    cseqlen -= replacePairs(rds, max_pair, new_code);
+  if (dict->num_rules - CHAR_SIZE + ut->size > shared_dictsize) {
+    dict->num_rules = shared_dictsize;
   }
-  width = ut->size + dict->num_rules - CHAR_SIZE;
-  if(width >= 2) width = ceil(log((double)numsymbol)/log(2.0));
-  if((2 * (dict->num_rules - CHAR_SIZE) + cseqlen) * width < best){
-    dict->num_usedrules = dict->num_rules;
-    best = (2 * (dict->num_rules - CHAR_SIZE) + cseqlen) * width;
+  while ((max_pair = getMaxPair(rds)) != NULL && dict->num_rules - CHAR_SIZE + ut->size < (1 << codewordlength)) {
+    // 何か処理をする
+    // ...
+    new_code = addNewPair(dict, max_pair);
+    cseqlen -= replacePairs(rds, max_pair, new_code);
   }
   getCompSeq(rds, dict);
   destructRDS(rds);

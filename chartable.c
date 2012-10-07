@@ -23,9 +23,12 @@ void chartable_set(USEDCHARTABLE *ut, unsigned char c)
   ut->table[ind] |= msk;
 }
 
-void chartable_write(USEDCHARTABLE *ut, FILE *fp)
+void chartable_write(USEDCHARTABLE *ut, OBITFS *obfs)
 {
-  fwrite(ut->table, 1, 32, fp);
+  int i;
+  for (i = 0; i < 4; i++) {
+    obitfs_put(obfs, ut->table[i], 8);
+  }
 }
 
 void chartable_read(USEDCHARTABLE *ut, FILE *fp)

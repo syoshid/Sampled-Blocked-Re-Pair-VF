@@ -75,41 +75,41 @@ void ExpandandWrite(EDICT *dict, OBITFS *obf, CODE cod, uint width){
   }
 }
 
-void EncodeCFG(EDICT *dict, FILE *output, USEDCHARTABLE *ut) {
+
+
+void EncodeCFG(EDICT *dict, OBITFS *obfs, unsigned int codewordlength) {
   uint i;
-  BITOUT *bitout;
-  OBITFS obf;
-
-  unsigned int width = ut->size + dict->num_usedrules - CHAR_SIZE;
-  // ˆÈ‰ºClog‚ð‹‚ß‚éD
-  //width |= width >> 1;
-  //width |= width >> 2;
-  //width |= width >> 4;
-  //width |= width >> 8;
-  //width |= width >> 16;
-  //width = (width & 0x55555555) + ((width >>  1) & 0x55555555);
-  //width = (width & 0x33333333) + ((width >>  2) & 0x33333333);
-  //width = (width & 0x0F0F0F0F) + ((width >>  4) & 0x0F0F0F0F);
-  //width = (width & 0x00FF00FF) + ((width >>  8) & 0x00FF00FF);
-  //width = (width & 0x0000FFFF) + ((width >> 16) & 0x0000FFFF);
-  if(width >= 1) width = ceil(log(width)/log(2.0));
-
-  printf("Encoding CFG...");
-  fflush(stdout);
-  fwrite(&(dict->txt_len), sizeof(uint), 1, output);
-  fwrite(&(dict->num_usedrules), sizeof(uint), 1, output);
-  fwrite(&(dict->seq_len), sizeof(uint), 1, output);
-  chartable_write(ut, output);
-
-  //bitout = createBitout(output);
-  obitfs_init(&obf, output);
-  encodeCFG_rec(0, dict, bitout, &obf, ut);
   for (i = 0; i < dict->seq_len; i++) {
-    ExpandandWrite(dict, &obf, dict->comp_seq[i], width);
+    obitfs_put(obfs, dict->tcode[dict->comp_seq[i]], codewordlength);
   }
-  //flushBitout(bitout);
-  obitfs_finalize(&obf);
-  printf("Finished!\n");
+}
+
+void outputHeader(OBITFS *obfs, DICT *dict, unsigned int codewordlength, unsigned int blocklength, USEDCHARTABLE *ut) {
+  obitfs_put(obfs, dict->txt_len, 32);
+  obitfs_put(obfs, codewordlength, 5);
+  obitfs_put(obfs, blocklength,   32);
+  chartable_write(ut, obfs);
+}
+
+void outputSharedDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigned int codewordlength, unsigned int shared_dictsize, unsigned int blocknum) {
+  unsigned int i;
+  obitfs_put(obfs, shared_dictsize, codewordlength);
+  for (i = CHAR_SIZE; i < shared_dictsize + CHAR_SIZE - ut->size; i++) {
+    obitfs_put(obfs, dict->tcode[dict->rule[i].left],  codewordlength);
+    obitfs_put(obfs, dict->tcode[dict->rule[i].right], codewordlength);
+  }
+  for (i = 0; i < blocknum; i++) {
+    obitfs_put(obfs, 0, codewordlength);
+  }
+}
+
+void outputLocalDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigned int codewordlength, unsigned int shared_dictsize, unsigned int blocknum) {
+  unsigned int i;
+  obitfs_put(obfs, dict->num_rules, codewordlength);
+  for (i = shared_dictsize + CHAR_SIZE - ut->size; i < dict->num_rules; i++) {
+    obitfs_put(obfs, dict->tcode[dict->rule[i].left],  codewordlength);
+    obitfs_put(obfs, dict->tcode[dict->rule[i].right], codewordlength);    
+  }
 }
 
 EDICT *ReadCFG(FILE *input) {
@@ -167,3 +167,12 @@ void DestructEDict(EDICT *dict)
   free(dict);
 }
 
+void fill_chartable(FILE *input, USEDCHARTABLE *ut)
+{
+  int c;
+  rewind(input);
+  while ((c = getc(input)) != EOF)
+    chartable_set(ut, (unsigned char)(c));
+  printf("text size = %ld(bytes)\n", ftell(input));
+  rewind(input);
+}
