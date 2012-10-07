@@ -257,12 +257,11 @@ void initRDS(RDS *rds)
   resetPQ(rds, 1);
 }
 
-RDS *createRDS(unsigned char *buf, int length)
+RDS *createRDS(unsigned int *buf, int length)
 {
   uint size_w;
   uint i;
   SEQ *seq;
-  CODE c;
   uint h_num;
   PAIR **h_first;
   uint p_max;
@@ -273,7 +272,7 @@ RDS *createRDS(unsigned char *buf, int length)
   seq = (SEQ*)malloc(sizeof(SEQ)*size_w);
 
   for (i = 0; i < length; i++) {
-    seq[i].code = c;
+    seq[i].code = buf[i];
     seq[i].next = DUMMY_POS;
     seq[i].prev = DUMMY_POS;
   }
@@ -609,7 +608,7 @@ void getCompSeq(RDS *rds, DICT *dict)
   dict->seq_len = seq_len;
 }
 
-DICT *RunRepair(DICT *dict, unsigned char *buf, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut)
+DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut)
 {
   RDS  *rds;
   //  DICT *dict;

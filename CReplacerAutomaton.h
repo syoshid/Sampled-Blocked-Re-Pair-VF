@@ -1,3 +1,4 @@
+// -*- c++ -*-
 //===================================================================
 //  Replacer Automaton class
 //
@@ -15,20 +16,20 @@ using namespace std;
 class CReplacerAutomaton {
 private:
   int num_states;
-  vector<string> ipats;
-  vector<string> opats;
+  vector<basic_string<unsigned int> > ipats;
+  vector<basic_string<unsigned int> > opats;
   vector< vector<int> > g;
   vector<int> f;
-  vector<string> o;
+  vector<basic_string<unsigned int> > o;
 
   virtual void make_goto_function();
   virtual void make_failure_function();
-  virtual void replacing(ifstream& fin, ofstream& fout);
+  virtual unsigned int replacing(unsigned char *in, unsigned int *out, unsigned int len);
   
 public:
   CReplacerAutomaton();
-  int enter(string ipat, string opat);
-  void run(ifstream& fin, ofstream& fout);
+  int enter(basic_string<unsigned int> ipat, basic_string<unsigned int> opat);
+  unsigned int run(unsigned char *in, unsigned int *out, unsigned int len);
 };
 
 #endif

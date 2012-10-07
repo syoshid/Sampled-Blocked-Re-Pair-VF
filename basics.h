@@ -42,9 +42,9 @@ typedef unsigned char uchar;
 #ifndef uint
 typedef unsigned int uint;
 #endif
-#ifndef bool
-typedef unsigned char bool;
-#endif
+/* #ifndef bool */
+/* typedef unsigned char bool; */
+/* #endif */
 #ifndef true
 # define false 0
 # define true  1

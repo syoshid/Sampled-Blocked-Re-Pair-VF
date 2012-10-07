@@ -24,6 +24,10 @@
 #include "encoder.h"
 #include "string.h"
 #include "chartable.h"
+#include "CReplacerAutomaton.h"
+#include <string>
+
+using namespace std;
 
 EDICT *convertDict(DICT *dict, USEDCHARTABLE *ut)
 {
@@ -49,6 +53,18 @@ EDICT *convertDict(DICT *dict, USEDCHARTABLE *ut)
   return edict;
 }
 
+basic_string<unsigned int> expand(DICT *dict, CODE i)
+{
+  basic_string<unsigned int> res;
+  if (i <= CHAR_SIZE) {
+    res = expand(dict, dict->rule[i].left) + expand(dict, dict->rule[i].right);
+  } else {
+    res += i;
+  }
+  return res;
+}
+  
+
 void help(char **argv)
 {
    printf("Usage: %s -r <input filename> -w <output filename> -d <dicitonary filename> -b <block size> -l <codeword length> -c <common_dictinoary size>\n"
@@ -62,10 +78,10 @@ int main(int argc, char *argv[])
   //char output_filename[1024];
   char *output_filename = NULL;
   char *dict_filename = NULL;
-  int codewordlength = 0;
-  int shared_dictsize = 0;
-  int block_length = 0;
-  int length;
+  unsigned int codewordlength = 0;
+  unsigned int shared_dictsize = 0;
+  unsigned int block_length = 0;
+  unsigned int length;
   char *rest;
   FILE *input, *output, *dictfile;
   DICT *dict;
@@ -74,6 +90,7 @@ int main(int argc, char *argv[])
   int result;
   unsigned int b;
   unsigned char *buf;
+  unsigned int  *buf2;
   OBITFS seqout, dicout;
   int header_output = 0;
 
@@ -93,21 +110,21 @@ int main(int argc, char *argv[])
       break;
       
     case 'b':
-      block_length = strtol(optarg, &rest, 10);
+      block_length = strtoul(optarg, &rest, 10);
       if (*rest != '\0') {
 	help(argv);
       }
       break;
       
     case 'l':
-      codewordlength = strtol(optarg, &rest, 10);
+      codewordlength = strtoul(optarg, &rest, 10);
       if (*rest != '\0') {
 	help(argv);
       }
       break;
       
     case 's':
-      shared_dictsize = strtol(optarg, &rest, 10);
+      shared_dictsize = strtoul(optarg, &rest, 10);
       if (*rest != '\0') {
 	help(argv);
       }
@@ -145,7 +162,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (buf = malloc(sizeof(unsigned char) * block_length))) {
+  if (NULL == (buf = (unsigned char*)malloc(sizeof(unsigned char) * block_length)) || NULL == (buf2 = (unsigned int*)malloc(sizeof(unsigned int) * block_length))) {
     puts("malloc fault.");
     exit(EXIT_FAILURE);
   }
@@ -162,10 +179,18 @@ int main(int argc, char *argv[])
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
   while (!feof(input)) {
     length = fread(buf, sizeof(unsigned char), block_length, input);
-    if (b) {
+    {
       // run replacerautomaton
-    }
-    dict = RunRepair(dict, buf, block_length, shared_dictsize, codewordlength, &ut);
+      CReplacerAutomaton acm;
+      unsigned int sdict_size = dict->num_rules >= shared_dictsize + CHAR_SIZE - ut.size ? shared_dictsize + CHAR_SIZE - ut.size : dict->num_rules;
+      unsigned int i;
+      for (i = CHAR_SIZE; i < sdict_size; i++) {
+	acm.enter(expand(dict, i), basic_string<unsigned int>(1, i));
+      }
+      length = acm.run(buf, buf2, length);
+    } 
+      
+    dict = RunRepair(dict, buf2, length, shared_dictsize, codewordlength, &ut);
     edict = convertDict(dict, &ut);
     if (dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize && !header_output) {
       header_output = 1;

@@ -1,20 +1,22 @@
 # Makefile
 
-SRCS	= repair.c cfg2txt.c encoder.c decoder.c bits.c chartable.c bitfs.c
+SRCS	= repair.c cfg2txt.c encoder.c decoder.c bits.c chartable.c bitfs.c CReplacerAutomaton.cpp
 REPAIR	= repair despair
 CFG	= txt2cfg cfg2txt cfg2enc txt2enc enc2txt
 
 OBJS	= $(SRCS:%.c=%.o)
-CC	= gcc
+CC	= g++
+CXX     = g++
 CFLAGS	= -O2 -DNDEBUG -Wall
+CXXFLAGS = -O2 -DNDEBUG -Wall
 LIB	= -lm
 
 all: $(REPAIR) TAGS
 
 cfg: $(CFG)
 
-repair: main.c repair.o encoder.o bits.o chartable.o bitfs.o
-	$(CC) $(CFLAGS) -DREPAIR -o $@ main.c repair.o encoder.o bits.o chartable.o bitfs.o $(LIB)
+repair: main.c repair.o encoder.o bits.o chartable.o bitfs.o CReplacerAutomaton.o
+	$(CXX) $(CFLAGS) -DREPAIR -o $@ main.c repair.o encoder.o bits.o chartable.o bitfs.o CReplacerAutomaton.o $(LIB)
 
 despair: main.c decoder.o bits.o chartable.o bitfs.o
 	$(CC) $(CFLAGS) -DDESPAIR -o $@ main.c decoder.o bits.o chartable.o bitfs.o $(LIB)
