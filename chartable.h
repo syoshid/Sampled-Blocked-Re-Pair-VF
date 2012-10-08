@@ -12,7 +12,7 @@ typedef struct _chartable
 void chartable_init(USEDCHARTABLE *ut);
 void chartable_set(USEDCHARTABLE *ut, unsigned char c);
 void chartable_write(USEDCHARTABLE *ut, OBITFS *obfs);
-void chartable_read(USEDCHARTABLE *ut, FILE *fp);
+void chartable_read(USEDCHARTABLE *ut, IBITFS *ibfs);
 unsigned int chartable_test(USEDCHARTABLE *ut, unsigned char c);
 
 

@@ -26,15 +26,17 @@ void chartable_set(USEDCHARTABLE *ut, unsigned char c)
 void chartable_write(USEDCHARTABLE *ut, OBITFS *obfs)
 {
   int i;
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 32; i++) {
     obitfs_put(obfs, ut->table[i], 8);
   }
 }
 
-void chartable_read(USEDCHARTABLE *ut, FILE *fp)
+void chartable_read(USEDCHARTABLE *ut, IBITFS *ibfs)
 {
-  fread(ut->table, 1, 32, fp);
   unsigned int i;
+  for (i = 0; i < 32; i++) {
+    ut->table[i] = ibitfs_get(ibfs, 8);
+  }
 #ifdef LESS_MEM
   unsigned int s;
   for(i = 0; i < 32; i++){

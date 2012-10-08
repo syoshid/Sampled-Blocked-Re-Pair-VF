@@ -7,8 +7,8 @@ CFG	= txt2cfg cfg2txt cfg2enc txt2enc enc2txt
 OBJS	= $(SRCS:%.c=%.o)
 CC	= g++
 CXX     = g++
-CFLAGS	= -O2 -DNDEBUG -Wall
-CXXFLAGS = -O2 -DNDEBUG -Wall
+CFLAGS	= -g -DNDEBUG -Wall
+CXXFLAGS = -g -DNDEBUG -Wall
 LIB	= -lm
 
 all: $(REPAIR) TAGS

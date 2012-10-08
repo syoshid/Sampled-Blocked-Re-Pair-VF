@@ -47,6 +47,7 @@ void encodeCFG_rec(uint code, EDICT *dict, BITOUT *bitout, OBITFS *obf, USEDCHAR
 void putLeaf(uint numcode, CODE lcode, BITOUT *bitout);
 void putParen(uchar b, BITOUT *bitout);
 void DestructEDict(EDICT *dict);
+void CleanEDict(EDICT *dict);
 void fill_chartable(FILE *input, USEDCHARTABLE *ut);
 void outputHeader(OBITFS *obfs, DICT *dict, unsigned int codewordlength, unsigned int blocklength, USEDCHARTABLE *ut);
 void outputSharedDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigned int codewordlength, unsigned int shared_dictsize, unsigned int blocknum);

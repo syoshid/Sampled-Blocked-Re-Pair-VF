@@ -30,6 +30,6 @@
 #include "bits.h"
 #include "bitfs.h"
 
-void DecodeCFG(FILE *input, FILE *output);
+void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict);
 
 #endif

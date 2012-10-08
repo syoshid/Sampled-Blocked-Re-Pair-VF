@@ -49,13 +49,26 @@ void expandLeaf(RULE *rule, CODE leaf, FILE *output, USEDCHARTABLE *ut, uint *le
   }
   else {
     expandLeaf(rule, rule[leaf].left, output, ut, len);
-    expandLeaf(rule, rule[leaf].right, output, ut, len); 
-    return;
+    expandLeaf(rule, rule[leaf].right, output, ut, len);
+    return; 
   }
 }
 
+void load_local_dictionary(IBITFS *dict_stream, RULE *rule, USEDCHARTABLE *ut, unsigned int shareddicsize, unsigned int width)
+{
+  unsigned int i;
+  unsigned int localdicsize = ibitfs_get(dict_stream, width);
+  printf("localdicsize = %d\n", localdicsize);
+
+  for (i = shareddicsize; i < shareddicsize + localdicsize; i++) {
+    rule[i].left  = ibitfs_get(dict_stream, width);
+    rule[i].right = ibitfs_get(dict_stream, width);
+  }
+}
+
+
 //この関数書き換え
-void DecodeCFG(FILE *input, FILE *output) {
+void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   uint i;
   RULE *rule;
   uint num_rules, txt_len, seq_len;
@@ -69,32 +82,25 @@ void DecodeCFG(FILE *input, FILE *output) {
   uint currentlen;
   bool paren;
   uint width = 1; // warning: 後で決める必要がある．
+  uint blocklength;
   USEDCHARTABLE ut;
+  uint shareddicsize;
+  uint b = 0;
 
   chartable_init(&ut);
-  fread(&txt_len, sizeof(uint), 1, input);
-  fread(&num_rules, sizeof(uint), 1, input);
-  fread(&seq_len, sizeof(uint), 1, input);
-  printf("txt_len = %d, num_rules = %d, seq_len = %d\n", 
-	 txt_len, num_rules, seq_len);
-  chartable_read(&ut, input);
+  txt_len     = ibitfs_get(dict, 32);
+  width       = ibitfs_get(dict,  5);
+  blocklength = ibitfs_get(dict, 32);
+  chartable_read(&ut, dict);
+  printf("txt_len = %d, codeword length = %d, block length = %d\n", 
+	 txt_len, width, blocklength);
 
-  // width 決定する．
-  width = ut.size + num_rules - CHAR_SIZE;
-  if(width >= 1) width = ceil(log(width)/log(2.0));
-  //width |= width >> 1;
-  //width |= width >> 2;
-  //width |= width >> 4;
-  //width |= width >> 8;
-  //width |= width >> 16;
-  //width = (width & 0x55555555) + ((width >>  1) & 0x55555555);
-  //width = (width & 0x33333333) + ((width >>  2) & 0x33333333);
-  //width = (width & 0x0F0F0F0F) + ((width >>  4) & 0x0F0F0F0F);
-  //width = (width & 0x00FF00FF) + ((width >>  8) & 0x00FF00FF);
-  //width = (width & 0x0000FFFF) + ((width >> 16) & 0x0000FFFF);
+
+
+  rule = (RULE*)malloc(sizeof(RULE)*(1 << width));
+
 
   // rule初期値の読み込み
-  rule = (RULE*)malloc(sizeof(RULE)*num_rules);
   uint j = 0;
   for (i = 0; i < CHAR_SIZE; i++) {
     if(chartable_test(&ut, (unsigned char)i)){
@@ -104,9 +110,42 @@ void DecodeCFG(FILE *input, FILE *output) {
     }
   }
 
+
+  // 各ブロックについてループ (currentlenがblocklengthの倍数になるごとに反復)
+  // ローカル辞書を読み込む
+  // 辞書に従ってデコードする
+
   printf("Decoding CFG...");
   fflush(stdout);
-  ibitfs_init(&ibfs, input);
+  
+  // shared辞書を読み込む
+  shareddicsize = ibitfs_get(dict, width);
+  printf("charsize = %d\n", ut.size);
+  printf("shareddicsize = %d\n", shareddicsize);
+  for (; j < shareddicsize; j++) {
+    rule[j].left  = ibitfs_get(dict, width);
+    rule[j].right = ibitfs_get(dict, width);
+  }
+
+  currentlen = 0;
+  load_local_dictionary(dict, rule, &ut, shareddicsize, width);
+  while (currentlen < txt_len) {
+    cod = ibitfs_get(input, width);
+    expandLeaf(rule, (CODE) cod, output, &ut, &currentlen);
+    if (currentlen % blocklength == 0) {
+      load_local_dictionary(dict, rule, &ut, shareddicsize, width);
+      b++;
+      continue;
+    }
+  }
+  fwrite(buffer, 1, bufpos, output);
+  printf("Finished!\n");
+  free(rule);
+  return;
+  
+
+
+
 
   // 各シンボルを読み込んでデコードする
   for(i = ut.size; i < ut.size + num_rules - CHAR_SIZE; i++){

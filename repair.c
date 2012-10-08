@@ -259,7 +259,7 @@ void initRDS(RDS *rds)
 
 RDS *createRDS(unsigned int *buf, int length)
 {
-  uint size_w;
+  uint size_w = length;
   uint i;
   SEQ *seq;
   uint h_num;
@@ -604,6 +604,7 @@ void getCompSeq(RDS *rds, DICT *dict)
     comp_seq[j++] = seq[i].code;
     i++;
   }
+  free(dict->comp_seq);
   dict->comp_seq = comp_seq;
   dict->seq_len = seq_len;
 }
@@ -634,7 +635,7 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   }
   getCompSeq(rds, dict);
   destructRDS(rds);
-  printf("Finished!\n"); fflush(stdout);
+
 
   return dict;
 }
@@ -643,6 +644,9 @@ void DestructDict(DICT *dict)
 {
   free(dict->rule);
   free(dict->comp_seq);
+  dict->rule = NULL;
+  dict->comp_seq = NULL;
+
   free(dict);
 }
 

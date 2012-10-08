@@ -56,7 +56,7 @@ EDICT *convertDict(DICT *dict, USEDCHARTABLE *ut)
 basic_string<unsigned int> expand(DICT *dict, CODE i)
 {
   basic_string<unsigned int> res;
-  if (i <= CHAR_SIZE) {
+  if (i >= CHAR_SIZE) {
     res = expand(dict, dict->rule[i].left) + expand(dict, dict->rule[i].right);
   } else {
     res += i;
@@ -67,11 +67,13 @@ basic_string<unsigned int> expand(DICT *dict, CODE i)
 
 void help(char **argv)
 {
-   printf("Usage: %s -r <input filename> -w <output filename> -d <dicitonary filename> -b <block size> -l <codeword length> -c <common_dictinoary size>\n"
+   printf("Usage: %s -r <input filename> -w <output filename> -d <dicitonary filename> -b <block size> -l <codeword length> -s <shared_dictinoary size>\n"
 	   "Compresses <input filename> with repair and creates "
 	   "<output filename> compressed files\n\n", argv[0]);
    exit(EXIT_FAILURE);
 }
+
+// encode用のmain関数
 int main(int argc, char *argv[])
 {
   char *target_filename = NULL;
@@ -178,7 +180,8 @@ int main(int argc, char *argv[])
   printf("Generating CFG..."); fflush(stdout);
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
   while (!feof(input)) {
-    length = fread(buf, sizeof(unsigned char), block_length, input);
+    unsigned int read_length;
+    read_length = fread(buf, sizeof(unsigned char), block_length, input);
     {
       // run replacerautomaton
       CReplacerAutomaton acm;
@@ -187,12 +190,12 @@ int main(int argc, char *argv[])
       for (i = CHAR_SIZE; i < sdict_size; i++) {
 	acm.enter(expand(dict, i), basic_string<unsigned int>(1, i));
       }
-      length = acm.run(buf, buf2, length);
+      length = acm.run(buf, buf2, read_length);
     } 
       
     dict = RunRepair(dict, buf2, length, shared_dictsize, codewordlength, &ut);
     edict = convertDict(dict, &ut);
-    if (dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize && !header_output) {
+    if (dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize && !header_output || read_length < block_length) {
       header_output = 1;
       outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
     }
@@ -200,11 +203,15 @@ int main(int argc, char *argv[])
       outputLocalDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
     }
     EncodeCFG(edict, &seqout, codewordlength);
-    DestructEDict(edict);
+    CleanEDict(edict);
     b++;
   }
+  printf("Finished!\n"); fflush(stdout);
+  free(dict->rule);
+  free(dict->comp_seq);
   free(dict);
-
+  obitfs_finalize(&seqout);
+  obitfs_finalize(&dicout);
   fclose(input);
   fclose(output);
   fclose(dictfile);
@@ -213,30 +220,81 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef DESPAIR
+#include <getopt.h>
+#include "bitfs.h"
 #include "decoder.h"
+
+void help(char **argv) {
+  printf("Usage: %s -r <input filename> -w <output filename> -d <dictionary file>\n"
+	 "Restore <output filename> from <input filename>\n\n", argv[0]);
+  exit(1);
+}
+
+
+
+// decode用のmain関数
 int main(int argc, char *argv[])
 {
   //char input_filename[1024];
-  char *input_filename;
-  FILE *input, *output;
+  char *input_filename, *output_filename, *dict_filename;
+  FILE *input, *output, *dictfile;
+  IBITFS input_stream, dict_stream;
+  int result;
 
-  if (argc != 3) {
-    printf("Usage: %s <input filename> <output filename>\n"
-	   "Restore <output filename> from <input filename>\n\n", argv[0]);
+ /* オプションの解析 */
+  while ((result = getopt(argc, argv, "r:w:d:")) != -1) {
+    switch (result) {
+    case 'r':
+      input_filename = optarg;
+      break;
+      
+    case 'w':
+      output_filename = optarg;
+      break;
+      
+    case 'd':
+      dict_filename = optarg;
+      break;
+      
+    case '?':
+      help(argv);
+      break;
+    }
+  }
+
+  // 必要なオプションがそろっているかを確認する
+  if (!(input_filename && output_filename && dict_filename)) {
+    help(argv);
+  }
+  
+  // 圧縮データファイルをオープンする
+  input  = fopen(input_filename, "rb");
+  if (input == NULL) {
+    puts("Input file open error at the beginning.");
     exit(1);
   }
   
-  //strcpy(input_filename, argv[1]);
-  //strcat(input_filename, ".rp");
-  input_filename = argv[1];
-
-  input = fopen(input_filename, "rb");
-  output = fopen(argv[2], "w");
-  if (input == NULL || output == NULL) {
-    printf("File open error.\n");
+  // 出力用ファイルをオープンする
+  output = fopen(output_filename, "wb");
+  if (output == NULL) {
+    puts("Output file open error at the beginning.");
     exit(1);
   }
-  DecodeCFG(input, output);
+  
+  // 辞書ファイルをオープンする
+  dictfile = fopen(dict_filename, "rb");
+  if (!dictfile) {
+    puts("Dictionary file open error at the beginning.");
+    exit(EXIT_FAILURE);
+  }
+
+  ibitfs_init(&input_stream, input);
+  ibitfs_init(&dict_stream, dictfile);
+  
+
+  DecodeCFG(output, &input_stream, &dict_stream);
+  ibitfs_finalize(&input_stream);
+  ibitfs_finalize(&dict_stream);
   fclose(input); fclose(output);
   exit(0);
 }
@@ -267,6 +325,8 @@ EDICT *convertDict(DICT *dict)
   free(dict);
   return edict;
 }
+
+
 
 int main(int argc, char *argv[])
 {

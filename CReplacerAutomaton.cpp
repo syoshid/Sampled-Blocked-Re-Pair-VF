@@ -140,10 +140,10 @@ unsigned int CReplacerAutomaton::replacing(unsigned char *in, unsigned int *out,
       }
       state = f[state];
     }
+    state = g[state][in[i]];
     if (state == 0) {
-      for (res += o[state].length(), j = 0; j < o[state].length(); j++) {
-	out[pos++] = o[state][j];
-      }
+      out[pos++] = in[i];
+      res++;
     }
     while (state != 0) {
       for (res += o[state].length(), j = 0; j < o[state].length(); j++) {
