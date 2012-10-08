@@ -58,7 +58,7 @@ void load_local_dictionary(IBITFS *dict_stream, RULE *rule, USEDCHARTABLE *ut, u
 {
   unsigned int i;
   unsigned int localdicsize = ibitfs_get(dict_stream, width);
-  printf("localdicsize = %d\n", localdicsize);
+  //  printf("localdicsize = %d\n", localdicsize);
 
   for (i = shareddicsize; i < shareddicsize + localdicsize; i++) {
     rule[i].left  = ibitfs_get(dict_stream, width);
@@ -92,7 +92,7 @@ void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   width       = ibitfs_get(dict,  5);
   blocklength = ibitfs_get(dict, 32);
   chartable_read(&ut, dict);
-  printf("txt_len = %d, codeword length = %d, block length = %d\n", 
+  printf("txt_len = %d, codeword length = %d, block length = %d, ", 
 	 txt_len, width, blocklength);
 
 
@@ -115,13 +115,14 @@ void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   // ローカル辞書を読み込む
   // 辞書に従ってデコードする
 
+
+  // shared辞書を読み込む
+  shareddicsize = ibitfs_get(dict, width);
+  //  printf("charsize = %d\n", ut.size);
+  printf("shared dictionary size = %d\n", shareddicsize);
   printf("Decoding CFG...");
   fflush(stdout);
   
-  // shared辞書を読み込む
-  shareddicsize = ibitfs_get(dict, width);
-  printf("charsize = %d\n", ut.size);
-  printf("shareddicsize = %d\n", shareddicsize);
   for (; j < shareddicsize; j++) {
     rule[j].left  = ibitfs_get(dict, width);
     rule[j].right = ibitfs_get(dict, width);
