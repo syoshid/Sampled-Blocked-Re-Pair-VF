@@ -625,11 +625,9 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   
   num_replaced = 0;
   if (dict->num_rules - CHAR_SIZE + ut->size > shared_dictsize) {
-    dict->num_rules = shared_dictsize;
+    dict->num_rules = shared_dictsize + CHAR_SIZE - ut->size;
   }
   while ((max_pair = getMaxPair(rds)) != NULL && dict->num_rules - CHAR_SIZE + ut->size < (1 << codewordlength)) {
-    // 何か処理をする
-    // ...
     new_code = addNewPair(dict, max_pair);
     cseqlen -= replacePairs(rds, max_pair, new_code);
   }

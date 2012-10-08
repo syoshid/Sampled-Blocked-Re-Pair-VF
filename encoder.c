@@ -94,14 +94,14 @@ void outputHeader(OBITFS *obfs, DICT *dict, unsigned int codewordlength, unsigne
 void outputSharedDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigned int codewordlength, unsigned int shared_dictsize, unsigned int blocknum) {
   unsigned int i;
   unsigned int s_size = dict->num_rules < shared_dictsize + CHAR_SIZE - ut->size ? dict->num_rules : shared_dictsize + CHAR_SIZE - ut->size;
-  //  printf("shareddicsize = %d\n", s_size + ut->size - CHAR_SIZE);
+  printf("shareddicsize = %d\n", s_size + ut->size - CHAR_SIZE);
   obitfs_put(obfs, s_size + ut->size - CHAR_SIZE, codewordlength);
   for (i = CHAR_SIZE; i < s_size; i++) {
     obitfs_put(obfs, dict->tcode[dict->rule[i].left],  codewordlength);
     obitfs_put(obfs, dict->tcode[dict->rule[i].right], codewordlength);
   }
   for (i = 0; i < blocknum; i++) {
-    //    printf("localdic #%d = 0\n", i);
+    printf("localdic #%d = 0\n", i);
     obitfs_put(obfs, 0, codewordlength);
   }
 }
@@ -110,11 +110,8 @@ void outputLocalDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigne
   unsigned int i;
   unsigned int share_size = dict->num_rules + ut->size - CHAR_SIZE < shared_dictsize ? dict->num_rules + ut->size - CHAR_SIZE : shared_dictsize; 
   obitfs_put(obfs, dict->num_rules + ut->size - share_size - CHAR_SIZE, codewordlength);
-  //  printf("rules #%d = %d\n", blocknum, dict->num_rules);// + ut->size - shared_dictsize - CHAR_SIZE);
-  //  printf("utsize #%d = %d\n", blocknum, ut->size);
-  //  printf("charsize #%d = %d\n", blocknum, CHAR_SIZE);
-  //  printf("shareddictsize #%d = %d\n", blocknum, share_size);
-  
+  printf("localdic #%d = %d\n", blocknum, dict->num_rules + ut->size - share_size - CHAR_SIZE);
+    
   for (i = share_size + CHAR_SIZE - ut->size; i < dict->num_rules; i++) {
     //    putchar('&');
     obitfs_put(obfs, dict->tcode[dict->rule[i].left],  codewordlength);

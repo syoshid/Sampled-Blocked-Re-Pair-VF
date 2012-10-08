@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
       
     dict = RunRepair(dict, buf2, length, shared_dictsize, codewordlength, &ut);
     edict = convertDict(dict, &ut);
-    if (dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize && !header_output || read_length < block_length) {
+    if ((dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize || read_length < block_length) && !header_output) {
       header_output = 1;
       outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
     }

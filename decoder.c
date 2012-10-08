@@ -142,24 +142,5 @@ void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   printf("Finished!\n");
   free(rule);
   return;
-  
-
-
-
-
-  // 各シンボルを読み込んでデコードする
-  for(i = ut.size; i < ut.size + num_rules - CHAR_SIZE; i++){
-    rule[i].left  = ibitfs_get(&ibfs, width);
-    rule[i].right = ibitfs_get(&ibfs, width);
-  }
-  currentlen = 0;
-//  for(i = 0; i < seq_len; i++){
-  while(currentlen < txt_len){
-    cod = ibitfs_get(&ibfs, width);
-    expandLeaf(rule, (CODE) cod, output, &ut, &currentlen);
-  }
-  fwrite(buffer, 1, bufpos, output);
-  printf("Finished!\n");
-  free(rule);
 }
 
