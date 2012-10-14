@@ -36,7 +36,7 @@ PAIR *createPair(RDS *rds, CODE left, CODE right, uint f_pos);
 void destructPair(RDS *rds, PAIR *target);
 void resetPQ(RDS *rds, uint p_num);
 void initRDS(RDS *rds);
-RDS *createRDS(unsigned char*, int);
+RDS *createRDS(unsigned char*, unsigned int);
 void destructRDS(RDS *rds);
 PAIR *getMaxPair(RDS *rds);
 uint leftPos_SQ(RDS *rds, uint pos);
@@ -257,7 +257,7 @@ void initRDS(RDS *rds)
   resetPQ(rds, 1);
 }
 
-RDS *createRDS(unsigned int *buf, int length)
+RDS *createRDS(unsigned int *buf, unsigned int length)
 {
   uint size_w = length;
   uint i;
@@ -627,7 +627,7 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   if (dict->num_rules - CHAR_SIZE + ut->size > shared_dictsize) {
     dict->num_rules = shared_dictsize + CHAR_SIZE - ut->size;
   }
-  while ((max_pair = getMaxPair(rds)) != NULL && dict->num_rules - CHAR_SIZE + ut->size < (1 << codewordlength)) {
+  while ((max_pair = getMaxPair(rds)) != NULL && (unsigned int)(dict->num_rules + ut->size - CHAR_SIZE) < (1U << codewordlength)) {
     new_code = addNewPair(dict, max_pair);
     cseqlen -= replacePairs(rds, max_pair, new_code);
   }

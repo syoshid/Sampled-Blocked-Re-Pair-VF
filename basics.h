@@ -25,7 +25,7 @@
 #ifndef LOG2
 # define LOG2(X) (log((double)(X))/log((double)2))
 #endif
-#define CHAR_SIZE 256
+#define CHAR_SIZE 256U
 #define DUMMY_CODE (CODE)UINT_MAX
 #define INIT_DICTIONARY_SIZE (256*1024)
 #define DICTIONARY_SCALING_FACTOR (1.25)
