@@ -180,6 +180,7 @@ int main(int argc, char *argv[])
   printf("Generating CFG..."); fflush(stdout);
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
   while (!feof(input)) {
+    printf("************ Block #%d ************\n", b);
     unsigned int read_length;
     read_length = fread(buf, sizeof(unsigned char), block_length, input);
     {
@@ -190,8 +191,12 @@ int main(int argc, char *argv[])
       for (i = CHAR_SIZE; i < sdict_size; i++) {
 	acm.enter(expand(dict, i), basic_string<unsigned int>(1, i));
       }
-      length = acm.run(buf, buf2, read_length);
-    } 
+      length = acm.run(buf, buf2, read_length, shared_dictsize + CHAR_SIZE);
+    }
+    /* for (unsigned int i = 0; i < length; i++) { */
+    /*   printf("%u ", buf2[i]); */
+    /* } */
+    /* puts(""); */
       
     dict = RunRepair(dict, buf2, length, shared_dictsize, codewordlength, &ut);
     edict = convertDict(dict, &ut);

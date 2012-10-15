@@ -4,7 +4,6 @@
 #include "CReplacerAutomaton.h"
 
 static const int GOTO_FAIL(-1);
-static const int CHAR_SIZE(256);
 
 CReplacerAutomaton::CReplacerAutomaton()
 {
@@ -19,6 +18,19 @@ CReplacerAutomaton::CReplacerAutomaton()
 // enter pattern and return the ID
 int CReplacerAutomaton::enter(basic_string<unsigned int> ipat, basic_string<unsigned int> opat)
 {
+  // cout << "ipat: " << endl;
+  // for (basic_string<unsigned int>::iterator it = ipat.begin(); it != ipat.end(); ++it) {
+  //   cout << *it;
+  //   cout << " ";
+  // }
+  // cout << endl;
+  // cout << "opat: " << endl;
+  // for (basic_string<unsigned int>::iterator it = opat.begin(); it != opat.end(); ++it) {
+  //   cout << *it;
+  //   cout << " ";
+  // }
+  // cout << endl;
+
   if (ipat == basic_string<unsigned int>()) { // null pattern
     return -1;
   }
@@ -34,8 +46,9 @@ int CReplacerAutomaton::enter(basic_string<unsigned int> ipat, basic_string<unsi
 
 //-------------------------------------------------------------------
 //
-unsigned int CReplacerAutomaton::run(unsigned char *in, unsigned int *out, unsigned int len)
+unsigned int CReplacerAutomaton::run(unsigned char *in, unsigned int *out, unsigned int len, unsigned int alpsize)
 {
+  this->alpsize = alpsize;
   make_goto_function();
   make_failure_function();
   return replacing(in, out, len);
@@ -46,7 +59,7 @@ unsigned int CReplacerAutomaton::run(unsigned char *in, unsigned int *out, unsig
 void CReplacerAutomaton::make_goto_function()
 {
   // initialize g[][] and o[][]
-  static vector<int> nul_g(CHAR_SIZE, GOTO_FAIL); //nul_g[0..CHAR_SIZE]=GOTO_FAIL;
+  static vector<int> nul_g(alpsize, GOTO_FAIL); //nul_g[0..alpsize]=GOTO_FAIL;
   static basic_string<unsigned int> nul_o;
   g.push_back(nul_g); // for initial state
   o.push_back(nul_o); // for initial state
@@ -71,7 +84,7 @@ void CReplacerAutomaton::make_goto_function()
     o[state] = opats[id];
   }
 
-  for (int i=0; i<CHAR_SIZE; i++) {
+  for (int i=0; i<alpsize; i++) {
     if (g[0][i] == GOTO_FAIL)
       g[0][i] = 0;
   }
@@ -85,7 +98,7 @@ void CReplacerAutomaton::make_failure_function()
   queue<int> q;
   f.reserve(num_states+1);
   
-  for (int i=0; i<CHAR_SIZE; i++) {
+  for (int i=0; i<alpsize; i++) {
     if (g[0][i] != 0) {
       int s = g[0][i];
       q.push(s);
@@ -99,7 +112,7 @@ void CReplacerAutomaton::make_failure_function()
   while (!q.empty()) {
     int r = q.front();
     q.pop();
-    for (int i=0; i<CHAR_SIZE; i++) {
+    for (int i=0; i<alpsize; i++) {
       if (g[r][i] == GOTO_FAIL) {
 	continue;
       }
@@ -145,13 +158,14 @@ unsigned int CReplacerAutomaton::replacing(unsigned char *in, unsigned int *out,
       out[pos++] = in[i];
       res++;
     }
-    while (state != 0) {
-      for (res += o[state].length(), j = 0; j < o[state].length(); j++) {
-	out[pos++] = o[state][j];
-      }
-      state = f[state];
-    }
   }
+  while (state != 0) {
+    for (res += o[state].length(), j = 0; j < o[state].length(); j++) {
+      out[pos++] = o[state][j];
+    }
+    state = f[state];
+  }
+  
 
 
   // while (fin.get(c)) {

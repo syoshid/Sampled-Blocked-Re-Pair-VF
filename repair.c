@@ -628,7 +628,9 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
     dict->num_rules = shared_dictsize + CHAR_SIZE - ut->size;
   }
   while ((max_pair = getMaxPair(rds)) != NULL && (unsigned int)(dict->num_rules + ut->size - CHAR_SIZE) < (1U << codewordlength)) {
+    printf("%u %u -> ", max_pair->left, max_pair->right);
     new_code = addNewPair(dict, max_pair);
+    printf("%u\n", new_code);
     cseqlen -= replacePairs(rds, max_pair, new_code);
   }
   getCompSeq(rds, dict);

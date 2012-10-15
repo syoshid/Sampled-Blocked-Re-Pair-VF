@@ -16,6 +16,7 @@ using namespace std;
 class CReplacerAutomaton {
 private:
   int num_states;
+  unsigned int alpsize;
   vector<basic_string<unsigned int> > ipats;
   vector<basic_string<unsigned int> > opats;
   vector< vector<int> > g;
@@ -29,7 +30,7 @@ private:
 public:
   CReplacerAutomaton();
   int enter(basic_string<unsigned int> ipat, basic_string<unsigned int> opat);
-  unsigned int run(unsigned char *in, unsigned int *out, unsigned int len);
+  unsigned int run(unsigned char *in, unsigned int *out, unsigned int len, unsigned int alpsize);
 };
 
 #endif
