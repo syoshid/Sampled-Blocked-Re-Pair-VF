@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
   printf("Generating CFG..."); fflush(stdout);
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
   while (!feof(input)) {
-    printf("************ Block #%d ************\n", b);
+    //    printf("************ Block #%d ************\n", b);
     unsigned int read_length;
     read_length = fread(buf, sizeof(unsigned char), block_length, input);
     {

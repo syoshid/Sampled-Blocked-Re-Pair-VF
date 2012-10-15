@@ -96,9 +96,9 @@ void outputSharedDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsign
   unsigned int s_size = dict->num_rules < shared_dictsize + CHAR_SIZE - ut->size ? dict->num_rules : shared_dictsize + CHAR_SIZE - ut->size;
   //  printf("shareddicsize = %d\n", s_size + ut->size - CHAR_SIZE);
   obitfs_put(obfs, s_size + ut->size - CHAR_SIZE, codewordlength);
-  puts("********** SHARED DICTIONARY **********");
+  //  puts("********** SHARED DICTIONARY **********");
   for (i = CHAR_SIZE; i < s_size; i++) {
-    printf("%d -> %d, %d\n", i, dict->tcode[dict->rule[i].left], dict->tcode[dict->rule[i].right]);
+    //    printf("%d -> %d, %d\n", i, dict->tcode[dict->rule[i].left], dict->tcode[dict->rule[i].right]);
     obitfs_put(obfs, dict->tcode[dict->rule[i].left],  codewordlength);
     obitfs_put(obfs, dict->tcode[dict->rule[i].right], codewordlength);
   }
