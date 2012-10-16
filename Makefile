@@ -7,8 +7,8 @@ CFG	= txt2cfg cfg2txt cfg2enc txt2enc enc2txt
 OBJS	= $(SRCS:%.c=%.o)
 CC	= g++
 CXX     = g++
-CFLAGS	= -g -DNDEBUG -Wall
-CXXFLAGS = -g -DNDEBUG -Wall
+CFLAGS	= -g -DNDEBUG -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+CXXFLAGS = -g -DNDEBUG -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 LIB	= -lm
 
 all: $(REPAIR) TAGS
@@ -37,7 +37,7 @@ cfg2enc: main.c encoder.o bits.o
 	$(CC) $(CFLAGS) -DCFG2ENC -o $@ main.c encoder.o bits.o $(LIB)
 
 TAGS: $(SRCS)
-	etags *.{c,h,cpp}
+	etags *.c *.cpp *.h
 
 clean:
 	-rm -f $(REPAIR) $(CFG) $(OBJS)  *~

@@ -60,7 +60,7 @@ typedef struct Rule {
 } RULE;
 
 typedef struct Dictionary {
-  uint txt_len;
+  uint64 txt_len;
   uint num_rules;
   uint num_usedrules;
   RULE *rule;
@@ -72,5 +72,5 @@ typedef struct Dictionary {
 DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut);
 void DestructDict(DICT *dict);
 void OutputGeneratedCFG(DICT *dict, FILE *output);
-DICT *createDict(uint txt_len);
+DICT *createDict(uint64 txt_len);
 #endif

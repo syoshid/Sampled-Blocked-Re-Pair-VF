@@ -532,7 +532,7 @@ uint replacePairs(RDS *rds, PAIR *max_pair, CODE new_code)
   return num_replaced;
 }
 
-DICT *createDict(uint txt_len)
+DICT *createDict(uint64 txt_len)
 {
   uint i;
   DICT *dict = (DICT*)malloc(sizeof(DICT));

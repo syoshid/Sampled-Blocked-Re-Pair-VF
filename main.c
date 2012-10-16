@@ -1,3 +1,4 @@
+// -*- c++ -*-
 /* 
  *  Copyright (c) 2011 Shirou Maruyama
  * 
@@ -82,7 +83,7 @@ int main(int argc, char *argv[])
   char *dict_filename = NULL;
   unsigned int codewordlength = 0;
   unsigned int shared_dictsize = 0;
-  unsigned int block_length = 0;
+  unsigned long int block_length = 0;
   unsigned int length;
   char *rest;
   FILE *input, *output, *dictfile;
@@ -171,9 +172,9 @@ int main(int argc, char *argv[])
 
   chartable_init(&ut);
   fill_chartable(input, &ut);
-  fseek(input, 0, SEEK_END);
-  dict = createDict(ftell(input));
-  fseek(input, 0, SEEK_SET);
+  fseeko(input, 0, SEEK_END);
+  dict = createDict(ftello(input));
+  fseeko(input, 0, SEEK_SET);
   b = 0;
   obitfs_init(&seqout, output);
   obitfs_init(&dicout, dictfile);

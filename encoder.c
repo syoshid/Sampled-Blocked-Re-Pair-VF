@@ -85,7 +85,8 @@ void EncodeCFG(EDICT *dict, OBITFS *obfs, unsigned int codewordlength) {
 }
 
 void outputHeader(OBITFS *obfs, DICT *dict, unsigned int codewordlength, unsigned int blocklength, USEDCHARTABLE *ut) {
-  obitfs_put(obfs, dict->txt_len, 32);
+  obitfs_put(obfs, (dict->txt_len) >> 32, 32);
+  obitfs_put(obfs, (dict->txt_len) & 0xFFFFFFFF, 32);
   obitfs_put(obfs, codewordlength, 5);
   obitfs_put(obfs, blocklength,   32);
   chartable_write(ut, obfs);
@@ -192,6 +193,6 @@ void fill_chartable(FILE *input, USEDCHARTABLE *ut)
   rewind(input);
   while ((c = getc(input)) != EOF)
     chartable_set(ut, (unsigned char)(c));
-  printf("text size = %ld(bytes)\n", ftell(input));
+  printf("text size = %lld(bytes)\n", ftello(input));
   rewind(input);
 }

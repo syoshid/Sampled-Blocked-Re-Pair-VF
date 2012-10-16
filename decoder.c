@@ -36,7 +36,7 @@ uint bits (uint n)
   return b;
 }
 
-void expandLeaf(RULE *rule, CODE leaf, FILE *output, USEDCHARTABLE *ut, uint *len) {
+void expandLeaf(RULE *rule, CODE leaf, FILE *output, USEDCHARTABLE *ut, uint64 *len) {
   if (leaf < ut->size) {
     buffer[bufpos] = rule[leaf].left;
     (*len)++;
@@ -71,7 +71,8 @@ void load_local_dictionary(IBITFS *dict_stream, RULE *rule, USEDCHARTABLE *ut, u
 void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   uint i;
   RULE *rule;
-  uint num_rules, txt_len, seq_len;
+  uint num_rules, seq_len;
+  uint64 txt_len;
   BITIN *bitin;
   IBITFS ibfs;
   uint exc, sp;
@@ -79,7 +80,7 @@ void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   CODE newcode, leaf;
   uint cod;
   uint bitlen;
-  uint currentlen;
+  uint64 currentlen;
   bool paren;
   uint width = 1; // warning: å„Ç≈åàÇﬂÇÈïKóvÇ™Ç†ÇÈÅD
   uint blocklength;
@@ -89,10 +90,12 @@ void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
 
   chartable_init(&ut);
   txt_len     = ibitfs_get(dict, 32);
+  txt_len     <<= 32;
+  txt_len     |= ibitfs_get(dict, 32);
   width       = ibitfs_get(dict,  5);
   blocklength = ibitfs_get(dict, 32);
   chartable_read(&ut, dict);
-  printf("txt_len = %d, codeword length = %d, block length = %d, ", 
+  printf("txt_len = %lld, codeword length = %d, block length = %d, ", 
 	 txt_len, width, blocklength);
 
 
