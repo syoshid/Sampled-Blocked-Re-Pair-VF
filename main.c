@@ -184,6 +184,7 @@ int main(int argc, char *argv[])
     //    printf("************ Block #%d ************\n", b);
     unsigned int read_length;
     read_length = fread(buf, sizeof(unsigned char), block_length, input);
+    if (!read_length) break;
     {
       // run replacerautomaton
       CReplacerAutomaton acm;
