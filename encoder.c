@@ -184,7 +184,6 @@ void CleanEDict(EDICT *dict)
 {
   free(dict->tcode);
   free(dict);
-  dict->tcode = NULL;
 }
 
 void fill_chartable(FILE *input, USEDCHARTABLE *ut)
