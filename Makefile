@@ -1,14 +1,17 @@
 # Makefile
 
-SRCS	= repair.c cfg2txt.c encoder.c decoder.c bits.c chartable.c bitfs.c CReplacerAutomaton.cpp
+SRCS	= repair.c cfg2txt.c encoder.c decoder.c bits.c chartable.c bitfs.c 
+#CReplacerAutomaton.cpp
 REPAIR	= repair despair
 CFG	= txt2cfg cfg2txt cfg2enc txt2enc enc2txt
 
 OBJS	= $(SRCS:%.c=%.o)
 CC	= g++
 CXX     = g++
-CFLAGS	= -g -DNDEBUG -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+CFLAGS	= -g -DNDEBUG -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 
+#-fmudflap -lmudflap
 CXXFLAGS = -g -DNDEBUG -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+#-fmudflap -lmudflap
 #CFLAGS	= -g -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 #CXXFLAGS = -g -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 LIB	= -lm
@@ -17,8 +20,8 @@ all: $(REPAIR) TAGS
 
 cfg: $(CFG)
 
-repair: main.c repair.o encoder.o bits.o chartable.o bitfs.o CReplacerAutomaton.o
-	$(CXX) $(CFLAGS) -DREPAIR -o $@ main.c repair.o encoder.o bits.o chartable.o bitfs.o CReplacerAutomaton.o $(LIB)
+repair: main.c repair.o encoder.o bits.o chartable.o bitfs.o
+	$(CXX) $(CFLAGS) -DREPAIR -o $@ main.c repair.o encoder.o bits.o chartable.o bitfs.o $(LIB)
 
 despair: main.c decoder.o bits.o chartable.o bitfs.o
 	$(CC) $(CFLAGS) -DDESPAIR -o $@ main.c decoder.o bits.o chartable.o bitfs.o $(LIB)

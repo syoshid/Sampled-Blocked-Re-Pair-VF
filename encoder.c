@@ -113,7 +113,7 @@ void outputLocalDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigne
   unsigned int i;
   unsigned int share_size = dict->num_rules + ut->size - CHAR_SIZE < shared_dictsize ? dict->num_rules + ut->size - CHAR_SIZE : shared_dictsize; 
   obitfs_put(obfs, dict->num_rules + ut->size - share_size - CHAR_SIZE, codewordlength);
-  //  printf("localdic #%d = %d\n", blocknum, dict->num_rules + ut->size - share_size - CHAR_SIZE);
+  //   printf("localdic #%d = %d\n", blocknum, dict->num_rules + ut->size - share_size - CHAR_SIZE);
     
   for (i = share_size + CHAR_SIZE - ut->size; i < dict->num_rules; i++) {
     //    putchar('&');

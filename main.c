@@ -25,7 +25,6 @@
 #include "encoder.h"
 #include "string.h"
 #include "chartable.h"
-#include "CReplacerAutomaton.h"
 #include <string>
 
 using namespace std;
@@ -182,27 +181,18 @@ int main(int argc, char *argv[])
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
   while (!feof(input)) {
     //    printf("************ Block #%d ************\n", b);
-    unsigned int read_length;
-    read_length = fread(buf, sizeof(unsigned char), block_length, input);
-    if (!read_length) break;
-    {
-      // run replacerautomaton
-      CReplacerAutomaton acm;
-      unsigned int sdict_size = dict->num_rules >= shared_dictsize + CHAR_SIZE - ut.size ? shared_dictsize + CHAR_SIZE - ut.size : dict->num_rules;
-      unsigned int i;
-      for (i = CHAR_SIZE; i < sdict_size; i++) {
-	acm.enter(expand(dict, i), basic_string<unsigned int>(1, i));
-      }
-      length = acm.run(buf, buf2, read_length, shared_dictsize + CHAR_SIZE);
+    length = fread(buf, sizeof(unsigned char), block_length, input);
+    if (!length) break;
+    for (uint i = 0; i < length; i++) {
+      buf2[i] = buf[i];
     }
     /* for (unsigned int i = 0; i < length; i++) { */
     /*   printf("%u ", buf2[i]); */
     /* } */
     /* puts(""); */
-      
     dict = RunRepair(dict, buf2, length, shared_dictsize, codewordlength, &ut);
     edict = convertDict(dict, &ut);
-    if ((dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize || read_length < block_length) && !header_output) {
+    if ((dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize || length < block_length) && !header_output) {
       header_output = 1;
       outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
     }
@@ -213,6 +203,11 @@ int main(int argc, char *argv[])
     CleanEDict(edict);
     b++;
   }
+  if (!header_output) {
+    header_output = 1;
+    outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
+  }
+
   printf("Finished!\n"); fflush(stdout);
   free(dict->rule);
   free(dict->comp_seq);

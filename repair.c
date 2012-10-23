@@ -614,6 +614,7 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   RDS  *rds;
   //  DICT *dict;
   PAIR *max_pair;
+  PAIR *target;
   CODE new_code;
   uint num_replaced, cseqlen, numsymbol;
   uint width;
@@ -627,6 +628,14 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   if (dict->num_rules - CHAR_SIZE + ut->size > shared_dictsize) {
     dict->num_rules = shared_dictsize + CHAR_SIZE - ut->size;
   }
+
+  // 現在の辞書を使って変換する
+  for (uint i = CHAR_SIZE; i < dict->num_rules; i++) {
+    target = locatePair(rds, dict->rule[i].left, dict->rule[i].right);
+    if (target) 
+      cseqlen -= replacePairs(rds, target, i);
+  }
+
   while ((max_pair = getMaxPair(rds)) != NULL && (unsigned int)(dict->num_rules + ut->size - CHAR_SIZE) < (1U << codewordlength)) {
     //    printf("%u %u -> ", max_pair->left, max_pair->right);
     new_code = addNewPair(dict, max_pair);

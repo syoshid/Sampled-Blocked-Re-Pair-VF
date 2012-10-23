@@ -132,15 +132,14 @@ void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   }
 
   currentlen = 0;
-  load_local_dictionary(dict, rule, &ut, shareddicsize, width);
+  //  load_local_dictionary(dict, rule, &ut, shareddicsize, width);
   while (currentlen < txt_len) {
-    cod = ibitfs_get(input, width);
-    expandLeaf(rule, (CODE) cod, output, &ut, &currentlen);
     if (currentlen % blocklength == 0) {
       load_local_dictionary(dict, rule, &ut, shareddicsize, width);
       b++;
-      continue;
     }
+    cod = ibitfs_get(input, width);
+    expandLeaf(rule, (CODE) cod, output, &ut, &currentlen);
   }
   fwrite(buffer, 1, bufpos, output);
   printf("Finished!\n");
