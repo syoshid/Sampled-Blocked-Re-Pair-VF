@@ -61,6 +61,11 @@ void CReplacerAutomaton::make_goto_function()
   // initialize g[][] and o[][]
   static vector<int> nul_g(alpsize, GOTO_FAIL); //nul_g[0..alpsize]=GOTO_FAIL;
   static basic_string<unsigned int> nul_o;
+  unsigned int maxsize = 0;
+  for (int id = 1; id < ipats.size(); id++) {
+    maxsize += ipats[id].length();
+  }
+  g.reserve(maxsize);
   g.push_back(nul_g); // for initial state
   o.push_back(nul_o); // for initial state
 
