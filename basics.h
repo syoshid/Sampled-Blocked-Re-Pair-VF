@@ -45,13 +45,13 @@ typedef unsigned int uint;
 #ifndef uint64
 typedef unsigned long long int uint64;
 #endif
-/* #ifndef bool */
-/* typedef unsigned char bool; */
-/* #endif */
-/* #ifndef true */
-/* # define false 0 */
-/* # define true  1 */
-/* #endif */
+#ifndef bool
+typedef unsigned char bool;
+#endif
+#ifndef true
+# define false 0
+# define true  1
+#endif
 
 #define OP 1
 #define CP 0

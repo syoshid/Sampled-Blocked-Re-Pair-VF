@@ -25,9 +25,6 @@
 #include "encoder.h"
 #include "string.h"
 #include "chartable.h"
-#include <string>
-
-using namespace std;
 
 EDICT *convertDict(DICT *dict, USEDCHARTABLE *ut)
 {
@@ -51,17 +48,6 @@ EDICT *convertDict(DICT *dict, USEDCHARTABLE *ut)
   }
   
   return edict;
-}
-
-basic_string<unsigned int> expand(DICT *dict, CODE i)
-{
-  basic_string<unsigned int> res;
-  if (i >= CHAR_SIZE) {
-    res = expand(dict, dict->rule[i].left) + expand(dict, dict->rule[i].right);
-  } else {
-    res += i;
-  }
-  return res;
 }
   
 
@@ -95,6 +81,7 @@ int main(int argc, char *argv[])
   unsigned int  *buf2;
   OBITFS seqout, dicout;
   int header_output = 0;
+  uint i;
 
    /* オプションの解析 */
   while ((result = getopt(argc, argv, "r:w:b:l:d:s:")) != -1) {
@@ -183,7 +170,7 @@ int main(int argc, char *argv[])
     //    printf("************ Block #%d ************\n", b);
     length = fread(buf, sizeof(unsigned char), block_length, input);
     if (!length) break;
-    for (uint i = 0; i < length; i++) {
+    for (i = 0; i < length; i++) {
       buf2[i] = buf[i];
     }
     /* for (unsigned int i = 0; i < length; i++) { */

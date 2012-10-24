@@ -36,7 +36,7 @@ PAIR *createPair(RDS *rds, CODE left, CODE right, uint f_pos);
 void destructPair(RDS *rds, PAIR *target);
 void resetPQ(RDS *rds, uint p_num);
 void initRDS(RDS *rds);
-RDS *createRDS(unsigned char*, unsigned int);
+RDS *createRDS(unsigned int*, unsigned int);
 void destructRDS(RDS *rds);
 PAIR *getMaxPair(RDS *rds);
 uint leftPos_SQ(RDS *rds, uint pos);
@@ -618,6 +618,7 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   CODE new_code;
   uint num_replaced, cseqlen, numsymbol;
   uint width;
+  uint i;
  
   rds  = createRDS(buf, length);
   //  dict = createDict(rds->txt_len);
@@ -630,7 +631,7 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   }
 
   // 現在の辞書を使って変換する
-  for (uint i = CHAR_SIZE; i < dict->num_rules; i++) {
+  for (i = CHAR_SIZE; i < dict->num_rules; i++) {
     target = locatePair(rds, dict->rule[i].left, dict->rule[i].right);
     if (target) 
       cseqlen -= replacePairs(rds, target, i);

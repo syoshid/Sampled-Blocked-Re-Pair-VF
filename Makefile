@@ -6,7 +6,7 @@ REPAIR	= repair despair
 CFG	= txt2cfg cfg2txt cfg2enc txt2enc enc2txt
 
 OBJS	= $(SRCS:%.c=%.o)
-CC	= g++
+CC	= gcc
 CXX     = g++
 CFLAGS	= -g -DNDEBUG -Wall -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 
 #-fmudflap -lmudflap
@@ -21,7 +21,7 @@ all: $(REPAIR) TAGS
 cfg: $(CFG)
 
 repair: main.c repair.o encoder.o bits.o chartable.o bitfs.o
-	$(CXX) $(CFLAGS) -DREPAIR -o $@ main.c repair.o encoder.o bits.o chartable.o bitfs.o $(LIB)
+	$(CC) $(CFLAGS) -DREPAIR -o $@ main.c repair.o encoder.o bits.o chartable.o bitfs.o $(LIB)
 
 despair: main.c decoder.o bits.o chartable.o bitfs.o
 	$(CC) $(CFLAGS) -DDESPAIR -o $@ main.c decoder.o bits.o chartable.o bitfs.o $(LIB)
