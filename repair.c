@@ -307,6 +307,9 @@ void destructRDS(RDS *rds)
   PAIR *p, *q;
   uint i;
 
+  for (i = 0; i < rds->p_max; i++)
+    resetPQ(rds, i);
+
   free(rds->seq);
   free(rds->h_first);
   free(rds->p_que);
@@ -594,6 +597,7 @@ void getCompSeq(RDS *rds, DICT *dict)
     i++;
   }
 
+  free(dict->comp_seq);
   comp_seq = (CODE*)malloc(sizeof(CODE)*seq_len);
   i = j = 0;
   while (i < rds->txt_len) {
@@ -604,7 +608,6 @@ void getCompSeq(RDS *rds, DICT *dict)
     comp_seq[j++] = seq[i].code;
     i++;
   }
-  free(dict->comp_seq);
   dict->comp_seq = comp_seq;
   dict->seq_len = seq_len;
 }
