@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
   }
 
   // 必要なオプションがそろっているかを確認する
-  if (!(target_filename && output_filename && dict_filename && block_length && codewordlength && shared_dictsize)) {
+  if (!(target_filename && output_filename && dict_filename && block_length && codewordlength)) {
     help(argv);
   }
   
@@ -164,6 +164,7 @@ int main(int argc, char *argv[])
   b = 0;
   obitfs_init(&seqout, output);
   obitfs_init(&dicout, dictfile);
+  if (shared_dictsize < ut.size) shared_dictsize = ut.size;
   printf("Generating CFG..."); fflush(stdout);
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
   while (!feof(input)) {
