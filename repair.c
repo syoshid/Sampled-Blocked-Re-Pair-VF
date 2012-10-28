@@ -55,6 +55,8 @@ uint hash_val(uint h_num, CODE left, CODE right) {
 }
 #endif
 
+static uint pqidx = 0;
+
 PAIR *locatePair(RDS *rds, CODE left, CODE right) {
   uint h = hash_val(rds->h_num, left, right);
   PAIR *p = rds->h_first[h];
@@ -318,7 +320,8 @@ void destructRDS(RDS *rds)
 
 PAIR *getMaxPair(RDS *rds)
 {
-  static uint i = 0;
+  //  static uint i = 0;
+  //  uint i = 0;
   PAIR **p_que = rds->p_que;
   PAIR *p, *max_pair;
   uint max;
@@ -336,10 +339,10 @@ PAIR *getMaxPair(RDS *rds)
   }
   else {
     max_pair = NULL;
-    if (i == 0) i = rds->p_max-1;
-    for (; i > 1; i--) {
-      if (p_que[i] != NULL) {
-	max_pair = p_que[i];
+    if (pqidx == 0) pqidx = rds->p_max-1;
+    for (; pqidx > 1; pqidx--) {
+      if (p_que[pqidx] != NULL) {
+	max_pair = p_que[pqidx];
 	break;
       }
     }
@@ -625,6 +628,7 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
  
   rds  = createRDS(buf, length);
   //  dict = createDict(rds->txt_len);
+  pqidx = 0;
   cseqlen = rds->txt_len;
 
   
@@ -636,17 +640,25 @@ DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_d
   // 現在の辞書を使って変換する
   for (i = CHAR_SIZE; i < dict->num_rules; i++) {
     target = locatePair(rds, dict->rule[i].left, dict->rule[i].right);
-    if (target) 
+    if (target) {
+      //      printf("%u %u -> %u\n", target->left, target->right, i);
       cseqlen -= replacePairs(rds, target, i);
+    }
   }
-
+  //  putchar('\n');
   while ((max_pair = getMaxPair(rds)) != NULL && (unsigned int)(dict->num_rules + ut->size - CHAR_SIZE) < (1U << codewordlength)) {
-    //    printf("%u %u -> ", max_pair->left, max_pair->right);
     new_code = addNewPair(dict, max_pair);
+    //    printf("%u %u -> %u\n", max_pair->left, max_pair->right, new_code);
     //    printf("%u\n", new_code);
     cseqlen -= replacePairs(rds, max_pair, new_code);
   }
+
+
   getCompSeq(rds, dict);
+  /* for (i = 0; i < dict->seq_len; i++) { */
+  /*   printf("%d ", dict->comp_seq[i]); */
+  /* } */
+  /* putchar('\n'); */
   destructRDS(rds);
 
 

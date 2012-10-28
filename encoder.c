@@ -118,6 +118,7 @@ void outputLocalDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigne
     
   for (i = share_size + CHAR_SIZE - ut->size; i < dict->num_rules; i++) {
     //    putchar('&');
+    //    printf("%d -> %d, %d\n", i, dict->tcode[dict->rule[i].left], dict->tcode[dict->rule[i].right]);
     obitfs_put(obfs, dict->tcode[dict->rule[i].left],  codewordlength);
     obitfs_put(obfs, dict->tcode[dict->rule[i].right], codewordlength);    
   }
