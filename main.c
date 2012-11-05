@@ -151,10 +151,10 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (buf = (unsigned char*)malloc(sizeof(unsigned char) * block_length))) { // || NULL == (buf2 = (unsigned int*)malloc(sizeof(unsigned int) * block_length))) {
-    puts("malloc fault.");
-    exit(EXIT_FAILURE);
-  }
+  //  if (NULL == (buf = (unsigned char*)malloc(sizeof(unsigned char) * block_length))) { // || NULL == (buf2 = (unsigned int*)malloc(sizeof(unsigned int) * block_length))) {
+  //    puts("malloc fault.");
+    //    exit(EXIT_FAILURE);
+  //  }
 
   chartable_init(&ut);
   fill_chartable(input, &ut);
@@ -169,8 +169,8 @@ int main(int argc, char *argv[])
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
   while (!feof(input)) {
     //    printf("************ Block #%d ************\n", b);
-    length = fread(buf, sizeof(unsigned char), block_length, input);
-    if (!length) break;
+    //    length = fread(buf, sizeof(unsigned char), block_length, input);
+    //    if (!length) break;
     //    for (i = 0; i < length; i++) {
     //      buf2[i] = buf[i];
     //    }
@@ -178,7 +178,8 @@ int main(int argc, char *argv[])
     /*   printf("%u ", buf2[i]); */
     /* } */
     /* puts(""); */
-    dict = RunRepair(dict, buf, block_length, shared_dictsize, codewordlength, &ut);
+    dict = RunRepair(dict, input, block_length, shared_dictsize, codewordlength, &ut);
+    if (!dict) break;
     edict = convertDict(dict, &ut);
     if ((dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize || feof(input)) && !header_output) {
       header_output = 1;
@@ -197,9 +198,11 @@ int main(int argc, char *argv[])
   }
 
   printf("Finished!\n"); fflush(stdout);
-  free(dict->rule);
-  free(dict->comp_seq);
-  free(dict);
+  if (dict) {
+    free(dict->rule);
+    free(dict->comp_seq);
+    free(dict);
+  }
   obitfs_finalize(&seqout);
   obitfs_finalize(&dicout);
   fclose(input);

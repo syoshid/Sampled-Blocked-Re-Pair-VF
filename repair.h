@@ -69,7 +69,7 @@ typedef struct Dictionary {
   uint buff_size;
 } DICT;
 
-DICT *RunRepair(DICT *dict, unsigned char *buf, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut);
+DICT *RunRepair(DICT *dict, FILE *input, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut);
 void DestructDict(DICT *dict);
 void OutputGeneratedCFG(DICT *dict, FILE *output);
 DICT *createDict(uint64 txt_len);
