@@ -36,7 +36,7 @@ PAIR *createPair(RDS *rds, CODE left, CODE right, uint f_pos);
 void destructPair(RDS *rds, PAIR *target);
 void resetPQ(RDS *rds, uint p_num);
 void initRDS(RDS *rds);
-RDS *createRDS(unsigned int*, unsigned int);
+RDS *createRDS(unsigned char*, unsigned int);
 void destructRDS(RDS *rds);
 PAIR *getMaxPair(RDS *rds);
 uint leftPos_SQ(RDS *rds, uint pos);
@@ -242,7 +242,7 @@ void initRDS(RDS *rds)
   PAIR *pair;
   PAIR **p_que = rds->p_que;
 
-  for (i = 0; i < size_w - 1; i++) {
+  for (i = 0; i + 1 < size_w; i++) {
     A = seq[i].code;
     B = seq[i+1].code;
     if ((pair = locatePair(rds, A, B)) == NULL) {
@@ -259,10 +259,11 @@ void initRDS(RDS *rds)
   resetPQ(rds, 1);
 }
 
-RDS *createRDS(unsigned int *buf, unsigned int length)
+RDS *createRDS(unsigned char *buf, unsigned int length)
 {
   uint size_w = length;
   uint i;
+  int c;
   SEQ *seq;
   uint h_num;
   PAIR **h_first;
@@ -292,7 +293,7 @@ RDS *createRDS(unsigned int *buf, unsigned int length)
   }
   
   rds = (RDS*)malloc(sizeof(RDS));
-  rds->txt_len = length;
+  rds->txt_len = size_w;
   rds->seq = seq;
   rds->num_pairs = 0;
   rds->h_num = h_num;
@@ -615,7 +616,7 @@ void getCompSeq(RDS *rds, DICT *dict)
   dict->seq_len = seq_len;
 }
 
-DICT *RunRepair(DICT *dict, unsigned int *buf, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut)
+DICT *RunRepair(DICT *dict, unsigned char *buf, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut)
 {
   RDS  *rds;
   //  DICT *dict;

@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
   int result;
   unsigned int b;
   unsigned char *buf;
-  unsigned int  *buf2;
+  unsigned int  *buf2 = NULL;
   OBITFS seqout, dicout;
   int header_output = 0;
   uint i;
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  if (NULL == (buf = (unsigned char*)malloc(sizeof(unsigned char) * block_length)) || NULL == (buf2 = (unsigned int*)malloc(sizeof(unsigned int) * block_length))) {
+  if (NULL == (buf = (unsigned char*)malloc(sizeof(unsigned char) * block_length))) { // || NULL == (buf2 = (unsigned int*)malloc(sizeof(unsigned int) * block_length))) {
     puts("malloc fault.");
     exit(EXIT_FAILURE);
   }
@@ -171,16 +171,16 @@ int main(int argc, char *argv[])
     //    printf("************ Block #%d ************\n", b);
     length = fread(buf, sizeof(unsigned char), block_length, input);
     if (!length) break;
-    for (i = 0; i < length; i++) {
-      buf2[i] = buf[i];
-    }
+    //    for (i = 0; i < length; i++) {
+    //      buf2[i] = buf[i];
+    //    }
     /* for (unsigned int i = 0; i < length; i++) { */
     /*   printf("%u ", buf2[i]); */
     /* } */
     /* puts(""); */
-    dict = RunRepair(dict, buf2, length, shared_dictsize, codewordlength, &ut);
+    dict = RunRepair(dict, buf, block_length, shared_dictsize, codewordlength, &ut);
     edict = convertDict(dict, &ut);
-    if ((dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize || length < block_length) && !header_output) {
+    if ((dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize || feof(input)) && !header_output) {
       header_output = 1;
       outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
     }
