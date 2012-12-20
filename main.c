@@ -1,4 +1,3 @@
-// -*- c++ -*-
 /* 
  *  Copyright (c) 2011 Shirou Maruyama
  * 
@@ -53,7 +52,7 @@ EDICT *convertDict(DICT *dict, USEDCHARTABLE *ut)
 
 void help(char **argv)
 {
-   printf("Usage: %s -r <input filename> -w <output filename> -d <dicitonary filename> -b <block size> -l <codeword length> -s <shared_dictinoary size>\n"
+   printf("Usage: %s -r <input filename> -w <output filename> -d <dicitonary filename> -b <block size> -l <codeword length> -s <shared_dictinoary size> -c <chunk length>\n"
 	   "Compresses <input filename> with repair and creates "
 	   "<output filename> compressed files\n\n", argv[0]);
    exit(EXIT_FAILURE);
@@ -68,6 +67,7 @@ int main(int argc, char *argv[])
   char *dict_filename = NULL;
   unsigned int codewordlength = 0;
   unsigned int shared_dictsize = 0;
+  unsigned int chunk_length = 0;
   unsigned long int block_length = 0;
   unsigned int length;
   char *rest;
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
   uint i;
 
    /* オプションの解析 */
-  while ((result = getopt(argc, argv, "r:w:b:l:d:s:")) != -1) {
+  while ((result = getopt(argc, argv, "r:w:b:l:d:s:c:")) != -1) {
     switch (result) {
     case 'r':
       target_filename = optarg;
@@ -104,7 +104,14 @@ int main(int argc, char *argv[])
 	help(argv);
       }
       break;
-      
+
+    case 'c':
+      chunk_length = strtol(optarg, &rest, 10);
+      if (*rest != '\0') {
+	help(argv);
+      }
+      break;
+
     case 'l':
       codewordlength = strtoul(optarg, &rest, 10);
       if (*rest != '\0') {
@@ -126,8 +133,13 @@ int main(int argc, char *argv[])
   }
 
   // 必要なオプションがそろっているかを確認する
-  if (!(target_filename && output_filename && dict_filename && block_length && codewordlength)) {
+  if (!(target_filename && output_filename && dict_filename && block_length && codewordlength && chunk_length)) {
     help(argv);
+  }
+
+  if (chunk_length > block_length) {
+    fprintf(stderr, "chunk length should not exceed block length.\n");
+    exit(1);
   }
   
   // 入力ファイルをオープンする

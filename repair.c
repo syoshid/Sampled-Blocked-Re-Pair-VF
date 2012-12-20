@@ -308,6 +308,65 @@ RDS *createRDS(FILE *input, unsigned int length)
   return rds;
 }
 
+
+RDS *createRDSwithsampling(FILE *input, unsigned int block_length, unsigned int chunk_size)
+{
+  uint size_w;
+  uint i;
+  int c;
+  SEQ *seq;
+  uint h_num;
+  PAIR **h_first;
+  uint p_max;
+  PAIR **p_que;
+  PAIR *pair;
+  RDS *rds;
+  unsigned long long int fsize;
+
+
+  fseeko(input, 0, SEEK_END);
+  fsize = ftello(input);
+  size_w = ((fsize / block_length) + 1) * chunk_size;
+
+
+  seq = (SEQ*)malloc(sizeof(SEQ)*size_w);
+
+  for (i = 0; i < size_w; i++) {
+    if (i && i % chunk_size == 0)
+      fseeko(input, block_length - chunk_size, SEEK_CUR);
+    if (EOF == (c = fgetc(input))) break;
+    seq[i].code = c;
+    seq[i].next = DUMMY_POS;
+    seq[i].prev = DUMMY_POS;
+  }
+  size_w = i;
+  if (size_w == 0 || size_w == 1) { free(seq); return NULL; }
+
+  h_num = INIT_HASH_NUM;
+  h_first = (PAIR**)malloc(sizeof(PAIR*)*primes[h_num]);
+  for (i = 0; i < primes[h_num]; i++) {
+    h_first[i] = NULL;
+  }
+
+  p_max = (uint)ceil(sqrt((double)size_w));
+  p_que = (PAIR**)malloc(sizeof(PAIR*)*p_max);
+  for (i = 0; i < p_max; i++) {
+    p_que[i] = NULL;
+  }
+  
+  rds = (RDS*)malloc(sizeof(RDS));
+  rds->txt_len = size_w;
+  rds->seq = seq;
+  rds->num_pairs = 0;
+  rds->h_num = h_num;
+  rds->h_first = h_first;
+  rds->p_max = p_max;
+  rds->p_que = p_que;
+  initRDS(rds);
+
+  return rds;
+}
+
 void destructRDS(RDS *rds)
 {
   PAIR *p, *q;
@@ -619,7 +678,7 @@ void getCompSeq(RDS *rds, DICT *dict)
   dict->seq_len = seq_len;
 }
 
-DICT *RunRepair(DICT *dict, FILE *input, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut)
+DICT *RunRepair(DICT *dict, FILE *input, int length, unsigned int shared_dictsize, unsigned int codewordlength, USEDCHARTABLE *ut, unsigned int chunk_size, unsigned int sample)
 {
   RDS  *rds;
   //  DICT *dict;
@@ -630,7 +689,10 @@ DICT *RunRepair(DICT *dict, FILE *input, int length, unsigned int shared_dictsiz
   uint width;
   uint i;
  
-  rds  = createRDS(input, length);
+  if (sample)
+    rds = createRDSwithsampling(input, length, chunk_size);
+  else
+    rds = createRDS(input, length);
   //  dict = createDict(rds->txt_len);
   if (!rds) return NULL;
   pqidx = 0;
