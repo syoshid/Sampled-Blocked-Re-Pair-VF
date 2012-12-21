@@ -104,10 +104,10 @@ void outputSharedDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsign
     obitfs_put(obfs, dict->tcode[dict->rule[i].left],  codewordlength);
     obitfs_put(obfs, dict->tcode[dict->rule[i].right], codewordlength);
   }
-  for (i = 0; i < blocknum; i++) {
-    //    printf("localdic #%d = 0\n", i);
-    obitfs_put(obfs, 0, codewordlength);
-  }
+  /* for (i = 0; i < blocknum; i++) { */
+  /*   //    printf("localdic #%d = 0\n", i); */
+  /*   obitfs_put(obfs, 0, codewordlength); */
+  /* } */
 }
 
 void outputLocalDictionary(OBITFS *obfs, EDICT *dict, USEDCHARTABLE *ut, unsigned int codewordlength, unsigned int shared_dictsize, unsigned int blocknum) {

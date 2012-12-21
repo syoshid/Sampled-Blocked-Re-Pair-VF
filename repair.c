@@ -326,6 +326,7 @@ RDS *createRDSwithsampling(FILE *input, unsigned int block_length, unsigned int 
 
   fseeko(input, 0, SEEK_END);
   fsize = ftello(input);
+  fseeko(input, 0, SEEK_SET);
   size_w = ((fsize / block_length) + 1) * chunk_size;
 
 

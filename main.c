@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   char *dict_filename = NULL;
   unsigned int codewordlength = 0;
   unsigned int shared_dictsize = 0;
-  unsigned int chunk_length = 0;
+  unsigned int chunk_size = 0;
   unsigned long int block_length = 0;
   unsigned int length;
   char *rest;
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'c':
-      chunk_length = strtol(optarg, &rest, 10);
+      chunk_size = strtol(optarg, &rest, 10);
       if (*rest != '\0') {
 	help(argv);
       }
@@ -133,11 +133,11 @@ int main(int argc, char *argv[])
   }
 
   // 必要なオプションがそろっているかを確認する
-  if (!(target_filename && output_filename && dict_filename && block_length && codewordlength && chunk_length)) {
+  if (!(target_filename && output_filename && dict_filename && block_length && codewordlength && chunk_size)) {
     help(argv);
   }
 
-  if (chunk_length > block_length) {
+  if (chunk_size > block_length) {
     fprintf(stderr, "chunk length should not exceed block length.\n");
     exit(1);
   }
@@ -179,6 +179,14 @@ int main(int argc, char *argv[])
   if (shared_dictsize < ut.size) shared_dictsize = ut.size;
   printf("Generating CFG..."); fflush(stdout);
   outputHeader(&dicout, dict, (unsigned int) codewordlength, (unsigned int) block_length, &ut);
+
+  dict = RunRepair(dict, input, block_length, shared_dictsize, codewordlength, &ut, chunk_size, 1);
+  if (!dict) exit(1);
+  edict = convertDict(dict, &ut);
+  outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
+  CleanEDict(edict);
+
+  fseeko(input, 0, SEEK_SET);
   while (!feof(input)) {
     //    printf("************ Block #%d ************\n", b);
     //    length = fread(buf, sizeof(unsigned char), block_length, input);
@@ -190,23 +198,12 @@ int main(int argc, char *argv[])
     /*   printf("%u ", buf2[i]); */
     /* } */
     /* puts(""); */
-    dict = RunRepair(dict, input, block_length, shared_dictsize, codewordlength, &ut);
-    if (!dict) break;
+    dict = RunRepair(dict, input, block_length, shared_dictsize, codewordlength, &ut, chunk_size, 0);
     edict = convertDict(dict, &ut);
-    if ((dict->num_rules - CHAR_SIZE + ut.size >= shared_dictsize || feof(input)) && !header_output) {
-      header_output = 1;
-      outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
-    }
-    if (header_output) {
-      outputLocalDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
-    }
+    outputLocalDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
     EncodeCFG(edict, &seqout, codewordlength);
     CleanEDict(edict);
     b++;
-  }
-  if (!header_output) {
-    header_output = 1;
-    outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
   }
 
   printf("Finished!\n"); fflush(stdout);
