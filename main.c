@@ -185,6 +185,7 @@ int main(int argc, char *argv[])
   edict = convertDict(dict, &ut);
   outputSharedDictionary(&dicout, edict, &ut, codewordlength, shared_dictsize, b);
   CleanEDict(edict);
+  if (dict->num_rules < shared_dictsize + CHAR_SIZE - ut.size) shared_dictsize = dict->num_rules + ut.size - CHAR_SIZE;
 
   fseeko(input, 0, SEEK_SET);
   while (!feof(input)) {
