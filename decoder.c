@@ -63,6 +63,7 @@ void load_local_dictionary(IBITFS *dict_stream, RULE *rule, USEDCHARTABLE *ut, u
   for (i = shareddicsize; i < shareddicsize + localdicsize; i++) {
     rule[i].left  = ibitfs_get(dict_stream, width);
     rule[i].right = ibitfs_get(dict_stream, width);
+    //    printf("%d -> %d, %d\n", i + CHAR_SIZE - ut->size, rule[i].left, rule[i].right);
   }
 }
 
@@ -129,6 +130,7 @@ void DecodeCFG(FILE *output, IBITFS *input, IBITFS *dict) {
   for (; j < shareddicsize; j++) {
     rule[j].left  = ibitfs_get(dict, width);
     rule[j].right = ibitfs_get(dict, width);
+    //    printf("%d -> %d, %d\n", j - ut.size + CHAR_SIZE, rule[j].left, rule[j].right);
   }
 
   currentlen = 0;
