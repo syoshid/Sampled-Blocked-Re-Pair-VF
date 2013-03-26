@@ -1,4 +1,6 @@
-re-pair-VF-best:
-repairアルゴリズムを用いたVF符号--局所最適解に捕まらずに最良のところを見つける
-Shirou Maruyamaさんのソースコードを改変して作成した．
-DEIM 2012
+Blocked Re-pair-VF-best:
+A variable-length-to-fixed-length coding using Re-Pair algorithm.
+It divides the input text into fixed length blocks to reduce memory consumption.
+
+Reference: 
+Kei Sekine, Hirohito Sasakawa, Satoshi Yoshida, and Takuya Kida, Variable-to-Fixed-Length Encoding for Large Texts Using Re-Pair Algorithm with Shared Dictionaries, In Proc. of Data Compression Conference 2013 (DCC 2013), p.518, Snowbird, Utah, USA, March 2013.
